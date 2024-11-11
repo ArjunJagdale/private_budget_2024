@@ -1,0 +1,440 @@
+﻿% Random Process: Plotting PDF of Gaussian Random Variable for various cases
+
+The Probability Density Function (PDF) describes the likelihood of a continuous random variable taking on a specific value. For a continuous distribution, the PDF tells us how the probability is distributed over possible values, but the PDF itself does not give the probability directly for any single value. Instead, the probability that the variable falls within a certain range can be found by integrating the PDF over that range.
+
+μ: This value centers the distribution. If 
+μ=0, the distribution is centered at zero. Shifting μ to a positive or negative value shifts the entire curve to the right or left, respectively.
+σ: This determines the width or "spread" of the distribution. A smaller σ results in a narrower peak, indicating that values are more concentrated around the mean, while a larger σ results in a wider distribution.
+
+% Define a range of x values
+x = -6:0.1:6;
+
+% Create a new figure window
+figure(1);
+% Set up a 2x3 grid of subplots
+subplot(2,3,1); % Case-1: Standard Gaussian (mean = 0, std dev = 1)
+m = 0; sd = 1;
+y = normpdf(x, m, sd);
+plot(x, y);
+axis([-6 6 0 1]);
+title('CASE-1: mean=0, std dev=1');
+xlabel('x values---->');
+ylabel('PDF---->');
+grid on;
+
+subplot(2,3,2); % Case-2: General Gaussian (mean = 1, std dev = 1)
+m = 1; sd = 1;
+y = normpdf(x, m, sd);
+plot(x, y);
+axis([-6 6 0 1]);
+title('CASE-2: mean=1, std dev=1');
+xlabel('x values---->');
+ylabel('PDF---->');
+grid on;
+
+subplot(2,3,3); % Case-3: General Gaussian (mean = -1, std dev = 1)
+m = -1; sd = 1;
+y = normpdf(x, m, sd);
+plot(x, y);
+axis([-6 6 0 1]);
+title('CASE-3: mean=-1, std dev=1');
+xlabel('x values---->');
+ylabel('PDF---->');
+grid on;
+
+subplot(2,3,4); % Case-4: General Gaussian (mean = 0, std dev = 1.5)
+m = 0; sd = 1.5;
+y = normpdf(x, m, sd);
+plot(x, y);
+axis([-6 6 0 1]);
+title('CASE-4: mean=0, std dev=1.5');
+xlabel('x values---->');
+ylabel('PDF---->');
+grid on;
+
+subplot(2,3,5); % Case-5: General Gaussian (mean = 0, std dev = 0.5)
+m = 0; sd = 0.5;
+y = normpdf(x, m, sd);
+plot(x, y);
+axis([-6 6 0 1]);
+title('CASE-5: mean=0, std dev=0.5');
+xlabel('x values---->');
+ylabel('PDF---->');
+grid on;
+
+subplot(2,3,6); % Case-6: General Gaussian (mean = 1, std dev = 0.5)
+m = 1; sd = 0.5;
+y = normpdf(x, m, sd);
+plot(x, y);
+axis([-6 6 0 1]);
+title('CASE-6: mean=1, std dev=0.5');
+xlabel('x values---->');
+ylabel('PDF---->');
+grid on;
+
+----------------------
+8. What does qammod do, and why is there a condition on M?
+Answer: qammod performs Quadrature Amplitude Modulation (QAM), which maps symbols onto a rectangular grid in the I/Q plane. QAM requires M to be a square of a power of 2 (e.g., 4, 16, 64) to form a square grid of constellation points. The condition mod(sqrt(M), 1) == 0 ensures M is a perfect square, as required by QAM.
+
+5. Can you explain pskmod and how it works here?
+Answer: The pskmod function performs Phase Shift Keying (PSK) modulation. In this code, pskmod(x, M) maps each symbol in x to a unique point on a circular constellation with M distinct phases. This results in M symbols evenly spaced on the unit circle, each representing a phase corresponding to a specific symbol.
+
+clc;
+clear all;
+M = input('Number_Symbols = ');
+x = 0:M-1;
+N = 1;
+OFF = 0;
+z = pskmod(x, M);
+figure(1)
+scatterplot(z, N, OFF, 'r+');
+N = 1;
+OFF = 0;
+y = qammod(x, M);
+figure(2)
+scatterplot(y, N, OFF, 'bo');
+
+
+-----------------
+
+Formulas to calculate BER of BPSK and QPSK pass band modulations scheme are
+as follows,
+Bit error probability of BPSK = (1/2) * erfc ( sqrt (SNR))
+Bit error probability of QPSK = erfc (sqrt (SNR))
+
+clc;
+close all;
+
+% Parameters
+data_bits = 1e6;            % Number of bits
+SNRdB = 0:9;               % SNR in dB
+b = randn(1, data_bits) > 0.5;  % Random 0's and 1's
+s = 2 * b - 1;             % BPSK modulation
+
+% Precompute the noise for all SNR values
+SNR = 10.^(SNRdB / 10);    % Linear SNR
+noise = randn(length(SNRdB), data_bits);  % All noise at once
+
+% Calculate simulated BER for each SNR value
+BER = arrayfun(@(k) sum((s + noise(k, :) / sqrt(SNR(k))) > 0 & s == -1 | (s + noise(k, :) / sqrt(SNR(k))) < 0 & s == 1) / data_bits, 1:length(SNRdB));
+
+% Plot results
+figure;
+semilogy(SNRdB, BER, 'r', 'LineWidth', 2);  % Simulated BPSK
+hold on;
+semilogy(SNRdB, (1/2) * erfc(sqrt(SNR)), 'k', 'LineWidth', 2);  % Theoretical BPSK
+semilogy(SNRdB, erfc(sqrt(SNR)), 'b', 'LineWidth', 2);  % Theoretical QPSK
+
+% Labels and Legend
+grid on;
+legend('Simulated BPSK', 'Theoretical BPSK', 'Theoretical QPSK');
+xlabel('SNR (dB)');
+ylabel('Bit Error Rate (BER)');
+title('BER vs SNR for BPSK and QPSK Modulation');
+
+---------------------------------------------------
+
+Linear Block Coding:
+Properties of Linear Block Code:
+1. The sum of two code words belonging to the code is also a codeword belonging to
+the code.
+2. The all zero word is always a code word.
+3. The minimum Hamming distance between two code words of a linear code is
+equal to the
+minimum weight of any nonzero codeword.
+Matrix Description of Linear Block Codes:
+The generator matrix will be a kxn matrix with rank K. k is message length and n is
+Codeword length so given block code is (n,k). Let the message vector is represented
+by M then codeword is calculated by:
+
+C=M*G
+
+Hence there will be 2k message vector so codeword will be 2k. After finding all
+possible codeword calculate minimum Hamming Distance which is minimum
+Hamming weight of codewords. dmin is minimum Hamming distance then error
+detecting and correcting capability is given by
+
+td= dmin-1, tc= (dmin-1)/2
+
+LBC Decoding:
+For LBC decoding we need parity check matrix which is given by:
+
+H = [PT
+:In-k]
+
+For received vector find syndrome vector which is calculated by:
+
+S = r*HT
+
+If syndrome is nonzero vector means received vector contains error. So compare
+syndrome vector with lookup table and find corresponding error vector. Corrected
+codeword is calculated by:
+
+C = r ⊕ E
+
+Basic Definitions:
+ Word: A Word is a sequence of symbols.
+ Code: A Code is a set of vectors called code words.
+ Hamming Weight: The Hamming Weight of a codeword is equal to the number
+of nonzero element in the codeword. The Hamming Weight of a codeword c is
+denoted by w(c).
+ Hamming Distance: The hamming distance between two code words is the
+number of places the code words differ. The Hamming distance between two
+codeword c1 & c2 is denoted by d(c1,c2) i.e. d(c1,c2) = w(c1-c2)
+ Block Code: A Block code consists of a set of fixed length code words.
+ Block Length: The fixed length of these code words is called the Block Length
+and is typically denoted by n.
+ Code Rate: The code rate of an (n, k) code is defined as the ratio (k/n) ,and is
+denotes the fraction of the codeword that consist of information symbol.
+ Minimum Distance: The minimum distance of a code is the minimum hamming
+distance between any two code words.
+ Minimum Weight: The minimum weight of a code is the smallest weight of any
+non-zero codeword.
+
+
+
+clc;
+clear all;
+close all;
+
+% User input for n and k
+n = input('Enter the value of n: ');
+k = input('Enter the value of k: ');
+m = n - k;
+
+% Generate the cyclic code generator polynomial
+G = cyclpoly(n, k, 'max');
+disp('Generator Polynomial G:');
+poly2sym(G)
+
+% Define the data words
+d1 = [1 0 0 0];
+d2 = [0 1 0 0];
+d3 = [0 0 1 0];
+d4 = [0 0 0 1];
+
+% Display data words and encoded codewords
+disp('Data word d1:');
+poly2sym(d1)
+disp('Codeword c1:');
+c1 = poly2sym(d1) * poly2sym(G)
+
+disp('Data word d2:');
+poly2sym(d2)
+disp('Codeword c2:');
+c2 = poly2sym(d2) * poly2sym(G)
+
+disp('Data word d3:');
+poly2sym(d3)
+disp('Codeword c3:');
+c3 = poly2sym(d3) * poly2sym(G)
+
+disp('Data word d4:');
+poly2sym(d4)
+disp('Codeword c4:');
+c4 = poly2sym(d4) * poly2sym(G)
+
+% Store codewords in a matrix
+s = [c1; c2; c3; c4];
+d = [d1; d2; d3; d4];
+
+% Perform matrix multiplication for codewords
+c = d * s;
+
+% Generate the parity-check matrix and syndrome table
+parmat = hammgen(m);
+trt = syndtable(parmat);
+
+% Example 1: Error detection and correction for received codeword
+recd = [0 1 0 1 0 0 0]; % Received codeword
+syndrome = rem(recd * parmat', 2); % Syndrome calculation
+syndrome_de = bi2de(syndrome, 'left-msb');
+disp(['Syndrome (decimal): ', num2str(syndrome_de), ', Syndrome (binary): ', num2str(syndrome)])
+
+% Look up the error pattern in the syndrome table
+Error = trt(1 + syndrome_de, :); % Error correction
+corrected_code = rem(Error + recd, 2); % Corrected codeword
+disp(['Corrected Codeword: ', num2str(corrected_code)])
+
+% Example 2: Another error detection and correction
+recd = [1 1 0 1 1 0 1]; % Another received codeword
+syndrome = rem(recd * parmat', 2); % Syndrome calculation
+syndrome_de = bi2de(syndrome, 'left-msb');
+disp(['Syndrome (decimal): ', num2str(syndrome_de), ', Syndrome (binary): ', num2str(syndrome)])
+
+% Error correction
+Error = trt(1 + syndrome_de, :);
+corrected_code = rem(Error + recd, 2); % Corrected codeword
+disp(['Corrected Codeword: ', num2str(corrected_code)]);
+
+------------------------------------------------------
+
+Cyclic codes are sub class of LBC. Generator matrix is used for generating LBC. Hence, for higher
+order codes we have large memory requirements and circuit becomes complex. Cyclic codes are LBC
+with additional constraints. They are easy to encode and posses a well-defined mathematical structure
+which makes them efficient in decoded.
+Parity check polynomial:
+A cyclic code can be specified by its generator polynomial g(x). There can be another polynomial called
+parity check polynomial h(x).
+g (x). h (x)=x n+1
+h(x ) is of the order k and is given by –
+h(x)= 1+ ( ∑ hi xi ) + xk
+Decoding of cyclic code:- The decoding process of cyclic code is same for both systematic and non
+systematic codes.
+Every valid codeword polynomial c(x) is a multiple of g(x).
+If received code word is same as the transmitted codeword then r(x) mod g(x)=0, else it will be non
+zero poltnomial.
+
+Consider, r(x)/ g(x), it can be given as-
+r(x)/g(x) = q(x) + s(x)/g(x) -------------- (1)
+
+q(x)= quotient, s(x)= remainder also called as syndrome polynomial.
+Degree of q(x) = k-1 and degree of s(x) = n-k-1
+r(x) = c(x) + e(x) --------------------- (2)
+
+e(x) = error polynomial
+r(x)/g(x) = c(x)+e(x) / g(x) --------------- (3)
+
+= c(x)/g(x) + e(x)/g(x) ---------- (4)
+Remainder [ r(x)/g(x)] = rem [ c(x)/g(x)] + rem [ c(x)/g(x)] ---------- (5)
+But remainder after division of c(x) and g(x) will be 0.
+Rem[ r(x)/g(x)] = rem [ e(x)/g(x)] ------------------ (6)
+ComparingEquations (1) and (6) s(x)= rem [ e(x) / g(x) ] ------------------------------ (7)
+
+
+% Enter the generator matrix (4x7 example for a (7,4) Hamming code)
+G = [1 0 0 1 1 0 0;
+     0 1 0 1 0 1 0;
+     0 0 1 1 0 0 1;
+     0 0 0 1 1 1 1];
+
+% Dimensions of G
+[k, n] = size(G);
+disp(['The order of the linear block code for the given generator matrix is:']);
+disp(['n = ', num2str(n), ', k = ', num2str(k)]);
+
+% Compute the possible codewords
+codewords = [];
+for i = 0:(2^k - 1)
+    message = de2bi(i, k);  % Convert to binary message
+    codeword = mod(message * G, 2);  % Generate the codeword
+    codewords = [codewords; codeword];
+end
+disp('The possible codewords are:');
+disp(codewords);
+
+% Calculate minimum Hamming distance (d_min)
+min_distance = Inf;
+for i = 1:size(codewords, 1)
+    for j = i+1:size(codewords, 1)
+        dist = sum(codewords(i, :) ~= codewords(j, :));
+        if dist < min_distance
+            min_distance = dist;
+        end
+    end
+end
+disp(['The minimum Hamming distance (d_min) for the given block code is: ', num2str(min_distance)]);
+
+% Enter the received codeword
+r = [1 0 0 1 0 0 0];  % Example received codeword
+
+% Compute the parity-check matrix H
+P = G(:, k+1:end);  % Extract P matrix from G
+H = [P' eye(n-k)];  % Construct parity-check matrix H
+
+% Compute the syndrome
+S = mod(r * H', 2);  % Syndrome computation
+disp('Syndrome of the given codeword is:');
+disp(S);
+
+% Check if error exists (Syndrome is non-zero)
+if any(S)
+    disp('There is an error in the received codeword.');
+    % Find the error position (syndrome matches error pattern)
+    error_position = bi2de(S, 'left-msb') + 1;  % Error position (1-based index)
+    disp(['The error is in bit: ', num2str(error_position)]);
+    r(error_position) = mod(r(error_position) + 1, 2);  % Correct the error
+    disp('The corrected codeword is:');
+    disp(r);
+else
+    disp('No error detected in the received codeword.');
+end
+
+------------------------------------------------
+
+In communication system efficient representation of data for an discrete source is
+obtained by source coding. Our aim is develop an efficient encoder for this there are
+2 requirements
+1.Code produced by encoder is in binary form
+2.It should be uniquely decodable.
+From Shannon’s coding theorem we can state that Coding Efficiency cam be
+increased if less number of bits are assigned to more probably occurring messages.
+Two techniques are presented
+1. Huffman coding technique/algorithm-a bottom-up approach
+2. Shannon Fano coding technique/algorithm-a top-down approach
+Both are variable length coding techniques
+HUFFMAN CODING:
+Huffman Coding is a technique of compressing data to reduce its size without losing
+any of the details. It was first developed by David Huffman. Huffman Coding is
+
+generally useful to compress the data in which there are frequently occurring
+characters. Using the Huffman Coding technique, we can compress the string to a
+smaller size. Huffman coding first creates a tree using the frequencies of the character
+and then generates code for each character. Once the data is encoded, it has to be
+decoded. Decoding is done using the same tree. Huffman Coding prevents any
+ambiguity in the decoding process using the concept of prefix code ie. a code
+associated with a character should not be present in the prefix of any other code. The
+tree created above helps in maintaining the property.
+Algorithm:
+1. Accept symbols and their probabilities from user.
+4. Arrange all the symbols in descending order of their probabilities.
+5. Consider the last two symbols in the sequence and assign ‘0’ to the second last
+and ‘1’ to the last, respectively.
+6. Add last two symbol probabilities and place the sum after addition in the list; as
+per its value giving highest priority.
+7. Repeat the steps 5 & 6; till only two symbol probabilities are left, to which also
+bit 0 & are assigned.
+8. Trace backward to form the codeword.
+9. Calculate codeword length of each symbol.
+10. Find average codeword length, entropy & efficiency of the code
+
+
+
+clc;
+clear;
+close all;
+
+% Input number of symbols and their probabilities
+num_symbols = input('Enter number of symbols: ');
+symbols = zeros(1, num_symbols);
+p = zeros(1, num_symbols);
+
+for m = 1:num_symbols
+    symbols(m) = input(['Enter symbol number ', num2str(m), ': ']);
+    p(m) = input(['Enter probability for symbol ', num2str(m), ': ']);
+end
+
+% Generate Huffman dictionary
+dict = huffmandict(symbols, p);
+
+% Calculate entropy Hx and encode each symbol
+Hx = 0;
+total_code_length = 0;
+
+for m = 1:num_symbols
+    hcode = huffmanenco(symbols(m), dict);
+    code_length = length(hcode);
+    total_code_length = total_code_length + p(m) * code_length;
+    Hx = Hx + p(m) * (-log2(p(m)));
+end
+
+% Display results
+disp('Entropy (Hx):');
+disp(Hx);
+
+% Calculate and display coding efficiency
+Efficiency = (Hx / total_code_length) * 100;
+disp('Efficiency (%):');
+disp(Efficiency);
+
+-----------------------------------------------------
